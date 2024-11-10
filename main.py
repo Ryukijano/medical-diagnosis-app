@@ -4,9 +4,11 @@ import streamlit as st
 import google.generativeai as genai
 from fastapi import FastAPI, Request
 from fastapi.middleware.wsgi import WSGIMiddleware
+from langchain import LangChain
+from langgraph import LangGraph
 
 # Set your API key
-genai.configure(api_key=os.environ["GOOGLE_API_KEY"])
+genai.configure(api_key=st.secrets["api_keys"]["google_gemini"])
 
 # Initialize the Gemini client
 model = genai.GenerativeModel("gemini-1.5-flash")

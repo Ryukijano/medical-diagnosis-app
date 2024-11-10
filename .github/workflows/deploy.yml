@@ -23,12 +23,16 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
 
+      - name: Build Docker image
+        run: |
+          docker build -t medical-diagnosis-app .
+
       - name: Run Streamlit app
         run: |
-          streamlit run main.py &
+          docker run -d -p 8501:8501 medical-diagnosis-app
 
       - name: Deploy to GitHub Pages
-        uses: peaceiris/actions-gh-pages@v3
+        uses: actions/deploy-pages@v4
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ./
+          publish_dir: ./app
