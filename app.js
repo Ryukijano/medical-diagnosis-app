@@ -1,6 +1,5 @@
 function diagnose() {
     const symptoms = document.getElementById('symptoms').value;
-    // Add code to call the diagnose function from the Streamlit app
     fetch('/diagnose', {
         method: 'POST',
         headers: {
@@ -29,7 +28,6 @@ function diagnose() {
 
 function analyzeHealthData() {
     const healthData = document.getElementById('health-data').value;
-    // Add code to call the analyzeHealthData function from the Streamlit app
     fetch('/analyze_health_data', {
         method: 'POST',
         headers: {
@@ -49,7 +47,6 @@ function analyzeHealthData() {
 
 function askChatbot() {
     const question = document.getElementById('question').value;
-    // Add code to call the askChatbot function from the Streamlit app
     fetch('/ask_chatbot', {
         method: 'POST',
         headers: {

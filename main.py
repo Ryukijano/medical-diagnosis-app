@@ -2,6 +2,8 @@ import os
 import re
 import streamlit as st
 import google.generativeai as genai
+from fastapi import FastAPI, Request
+from fastapi.middleware.wsgi import WSGIMiddleware
 
 # Set your API key
 genai.configure(api_key=os.environ["GOOGLE_API_KEY"])
@@ -75,3 +77,30 @@ if st.button("Ask Chatbot"):
         st.write(answer)
     else:
         st.write("Please enter your question.")
+
+app = FastAPI()
+
+@app.post("/diagnose")
+async def diagnose_endpoint(request: Request):
+    data = await request.json()
+    symptoms = data.get("symptoms", "")
+    diagnoses, full_response = diagnose(symptoms)
+    return {"diagnoses": diagnoses, "full_response": full_response}
+
+@app.post("/analyze_health_data")
+async def analyze_health_data_endpoint(request: Request):
+    data = await request.json()
+    health_data = data.get("health_data", "")
+    analysis = analyze_health_data(health_data)
+    return {"analysis": analysis}
+
+@app.post("/ask_chatbot")
+async def ask_chatbot_endpoint(request: Request):
+    data = await request.json()
+    question = data.get("question", "")
+    answer = chatbot(question)
+    return {"answer": answer}
+
+# Mount the Streamlit app
+streamlit_app = st.app
+app.mount("/", WSGIMiddleware(streamlit_app))
