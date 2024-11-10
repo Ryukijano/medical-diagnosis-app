@@ -1,5 +1,7 @@
 function diagnose() {
     const symptoms = document.getElementById('symptoms').value;
+    const resultsDiv = document.getElementById('diagnosis-results');
+    resultsDiv.innerHTML = '<p>Loading...</p>';
     fetch('/diagnose', {
         method: 'POST',
         headers: {
@@ -9,7 +11,6 @@ function diagnose() {
     })
     .then(response => response.json())
     .then(data => {
-        const resultsDiv = document.getElementById('diagnosis-results');
         resultsDiv.innerHTML = `<p>${data.full_response}</p>`;
         if (data.diagnoses.length > 0) {
             resultsDiv.innerHTML += '<p>Potential diagnoses:</p><ul>';
@@ -23,11 +24,14 @@ function diagnose() {
     })
     .catch(error => {
         console.error('Error:', error);
+        resultsDiv.innerHTML = '<p>Error occurred. Please try again.</p>';
     });
 }
 
 function analyzeHealthData() {
     const healthData = document.getElementById('health-data').value;
+    const resultsDiv = document.getElementById('health-data-results');
+    resultsDiv.innerHTML = '<p>Loading...</p>';
     fetch('/analyze_health_data', {
         method: 'POST',
         headers: {
@@ -37,16 +41,18 @@ function analyzeHealthData() {
     })
     .then(response => response.json())
     .then(data => {
-        const resultsDiv = document.getElementById('health-data-results');
         resultsDiv.innerHTML = `<p>${data.analysis}</p>`;
     })
     .catch(error => {
         console.error('Error:', error);
+        resultsDiv.innerHTML = '<p>Error occurred. Please try again.</p>';
     });
 }
 
 function askChatbot() {
     const question = document.getElementById('question').value;
+    const responseDiv = document.getElementById('chatbot-response');
+    responseDiv.innerHTML = '<p>Loading...</p>';
     fetch('/ask_chatbot', {
         method: 'POST',
         headers: {
@@ -56,10 +62,10 @@ function askChatbot() {
     })
     .then(response => response.json())
     .then(data => {
-        const responseDiv = document.getElementById('chatbot-response');
         responseDiv.innerHTML = `<p>${data.answer}</p>`;
     })
     .catch(error => {
         console.error('Error:', error);
+        responseDiv.innerHTML = '<p>Error occurred. Please try again.</p>';
     });
 }
