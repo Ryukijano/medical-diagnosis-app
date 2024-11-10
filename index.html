@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Medical Diagnosis Application</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <header>
+        <h1>Medical Diagnosis Application</h1>
+    </header>
+    <main>
+        <section>
+            <h2>Symptom Checker</h2>
+            <p>Input your symptoms to receive potential diagnoses and explanations from Gemini.</p>
+            <textarea id="symptoms" placeholder="Describe your symptoms..."></textarea>
+            <button onclick="diagnose()">Diagnose</button>
+            <div id="diagnosis-results"></div>
+        </section>
+        <section>
+            <h2>Health Monitoring</h2>
+            <p>Input your daily health data to receive personalized health recommendations.</p>
+            <textarea id="health-data" placeholder="Enter your health data..."></textarea>
+            <button onclick="analyzeHealthData()">Analyze Health Data</button>
+            <div id="health-data-results"></div>
+        </section>
+        <section>
+            <h2>Medical Advice Chatbot</h2>
+            <p>Ask any health-related questions to the chatbot.</p>
+            <textarea id="question" placeholder="Enter your question..."></textarea>
+            <button onclick="askChatbot()">Ask Chatbot</button>
+            <div id="chatbot-response"></div>
+        </section>
+    </main>
+    <footer>
+        <p>Disclaimer: This is for informational purposes only and not a substitute for professional medical advice.</p>
+    </footer>
+    <script src="app.js"></script>
+</body>
+</html>
