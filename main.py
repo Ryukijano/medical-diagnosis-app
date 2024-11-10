@@ -2,8 +2,6 @@ import os
 import re
 import streamlit as st
 import google.generativeai as genai
-from fastapi import FastAPI, Request
-from fastapi.middleware.wsgi import WSGIMiddleware
 
 # Set your API key
 genai.configure(api_key=os.environ["GOOGLE_API_KEY"])
@@ -19,16 +17,6 @@ def diagnose(symptoms):
     diagnoses = re.findall(r"Possible diagnoses?:?\s*(.*?)\n", response.text)
 
     return diagnoses, response.text
-
-def analyze_health_data(data):
-    prompt = f"Analyze the following health data: {data}. Provide personalized health recommendations."
-    response = model.generate_content(prompt)
-    return response.text
-
-def chatbot(question):
-    prompt = f"User asks: {question}"
-    response = model.generate_content(prompt)
-    return response.text
 
 # Streamlit interface
 st.title("Medical Diagnosis Application")
@@ -53,54 +41,3 @@ if st.button("Diagnose"):
         st.write(full_response)
     else:
         st.write("Please enter your symptoms.")
-
-# User input for health data
-st.write("Input your daily health data to receive personalized health recommendations.")
-health_data = st.text_area("Enter your health data (e.g., temperature, blood pressure, heart rate):")
-
-if st.button("Analyze Health Data"):
-    if health_data:
-        analysis = analyze_health_data(health_data)
-        st.write("Health Data Analysis:")
-        st.write(analysis)
-    else:
-        st.write("Please enter your health data.")
-
-# User input for chatbot
-st.write("Ask any health-related questions to the chatbot.")
-question = st.text_area("Enter your question:")
-
-if st.button("Ask Chatbot"):
-    if question:
-        answer = chatbot(question)
-        st.write("Chatbot Response:")
-        st.write(answer)
-    else:
-        st.write("Please enter your question.")
-
-app = FastAPI()
-
-@app.post("/diagnose")
-async def diagnose_endpoint(request: Request):
-    data = await request.json()
-    symptoms = data.get("symptoms", "")
-    diagnoses, full_response = diagnose(symptoms)
-    return {"diagnoses": diagnoses, "full_response": full_response}
-
-@app.post("/analyze_health_data")
-async def analyze_health_data_endpoint(request: Request):
-    data = await request.json()
-    health_data = data.get("health_data", "")
-    analysis = analyze_health_data(health_data)
-    return {"analysis": analysis}
-
-@app.post("/ask_chatbot")
-async def ask_chatbot_endpoint(request: Request):
-    data = await request.json()
-    question = data.get("question", "")
-    answer = chatbot(question)
-    return {"answer": answer}
-
-# Mount the Streamlit app
-streamlit_app = st.app
-app.mount("/", WSGIMiddleware(streamlit_app))
