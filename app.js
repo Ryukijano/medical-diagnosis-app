@@ -1,5 +1,14 @@
+function showLoadingIndicator() {
+    document.getElementById('loading-indicator').style.display = 'block';
+}
+
+function hideLoadingIndicator() {
+    document.getElementById('loading-indicator').style.display = 'none';
+}
+
 function diagnose() {
     const symptoms = document.getElementById('symptoms').value;
+    showLoadingIndicator();
     fetch('/diagnose', {
         method: 'POST',
         headers: {
@@ -20,14 +29,17 @@ function diagnose() {
         } else {
             resultsDiv.innerHTML += '<p>No specific diagnoses could be determined. Please consult a medical professional.</p>';
         }
+        hideLoadingIndicator();
     })
     .catch(error => {
         console.error('Error:', error);
+        hideLoadingIndicator();
     });
 }
 
 function analyzeHealthData() {
     const healthData = document.getElementById('health-data').value;
+    showLoadingIndicator();
     fetch('/analyze_health_data', {
         method: 'POST',
         headers: {
@@ -39,14 +51,17 @@ function analyzeHealthData() {
     .then(data => {
         const resultsDiv = document.getElementById('health-data-results');
         resultsDiv.innerHTML = `<p>${data.analysis}</p>`;
+        hideLoadingIndicator();
     })
     .catch(error => {
         console.error('Error:', error);
+        hideLoadingIndicator();
     });
 }
 
 function askChatbot() {
     const question = document.getElementById('question').value;
+    showLoadingIndicator();
     fetch('/ask_chatbot', {
         method: 'POST',
         headers: {
@@ -58,8 +73,10 @@ function askChatbot() {
     .then(data => {
         const responseDiv = document.getElementById('chatbot-response');
         responseDiv.innerHTML = `<p>${data.answer}</p>`;
+        hideLoadingIndicator();
     })
     .catch(error => {
         console.error('Error:', error);
+        hideLoadingIndicator();
     });
 }
