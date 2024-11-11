@@ -13,12 +13,12 @@ from langgraph.prebuilt.tool_executor import ToolExecutor
 # Configure API
 genai.configure(api_key=os.environ["GOOGLE_API_KEY"])
 
-# Define state schema
+# Define a single state interface
 class AgentState(TypedDict):
     messages: list
-    current_tool: str
-    health_history: Dict
     summary: str
+    current_tool: str
+    context: Dict
 
 # Enhanced tools with more context
 def diagnose(symptoms: str, health_history: Dict = None) -> str:
@@ -65,10 +65,13 @@ tools = [
 # Create tool executor
 tool_executor = ToolExecutor(tools)
 
-# Define state transformations
-def route_by_input(state: AgentState) -> str:
-    if "symptoms" in state["messages"][-1].content.lower():
+# Create a state router that determines the appropriate tool
+def route_by_intent(state: AgentState) -> str:
+    message = state["messages"][-1].content.lower()
+    if "symptoms" in message:
         return "diagnose"
+    elif any(term in message for term in ["data", "temperature", "pressure", "rate"]):
+        return "analyze"
     return "chat"
 
 def update_summary(state: AgentState) -> AgentState:
@@ -79,17 +82,23 @@ def update_summary(state: AgentState) -> AgentState:
     )
     return state
 
-# Build graph
+# Build the graph
 workflow = StateGraph(AgentState)
 
-# Add nodes
-workflow.add_node("router", route_by_input)
+# Add nodes for the unified flow
+workflow.add_node("router", route_by_intent)
 workflow.add_node("diagnose", tool_executor)
+workflow.add_node("analyze", tool_executor) 
+workflow.add_node("chat", tool_executor)
 workflow.add_node("summarize", update_summary)
 
-# Add edges
+# Add edges for the workflow
 workflow.add_edge("router", "diagnose")
+workflow.add_edge("router", "analyze")
+workflow.add_edge("router", "chat")
 workflow.add_edge("diagnose", "summarize")
+workflow.add_edge("analyze", "summarize") 
+workflow.add_edge("chat", "summarize")
 workflow.add_edge("summarize", END)
 
 # Compile

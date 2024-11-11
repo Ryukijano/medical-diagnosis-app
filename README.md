@@ -53,3 +53,10 @@ Contributions are welcome! Please follow these steps to contribute:
 ## License
 
 This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
+
+## Additional Features
+
+- **Responsive AI Respond Button**: The application now includes a responsive AI respond button and a waiting for response button. The buttons are styled to be user-friendly and visually appealing.
+- **Loading Indicator**: A loading indicator is displayed while the AI is processing the input, providing a better user experience.
+- **Enhanced UI/UX**: The user interface has been improved to make the application more user-friendly and visually appealing.
+- **Secure API Key Handling**: The API key is securely read from the secrets file, enhancing security.

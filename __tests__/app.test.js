@@ -43,4 +43,16 @@ describe('API Integration Tests', () => {
     const data = await response.json();
     expect(data).toHaveProperty('answer');
   });
+
+  test('send_message endpoint', async () => {
+    const response = await fetch('/send_message', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ message: 'Tell me about the symptoms of flu.' }),
+    });
+    const data = await response.json();
+    expect(data).toHaveProperty('response');
+  });
 });
