@@ -62,9 +62,9 @@ function askChatbot() {
 }
 
 function showLoading() {
-    document.querySelector('.loading').style.display = 'block';
+    document.querySelector('.loading-indicator').style.display = 'flex';
 }
 
 function hideLoading() {
-    document.querySelector('.loading').style.display = 'none';
+    document.querySelector('.loading-indicator').style.display = 'none';
 }
