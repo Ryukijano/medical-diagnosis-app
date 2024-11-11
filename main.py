@@ -66,13 +66,31 @@ tools = [
 tool_executor = ToolExecutor(tools)
 
 # Create a state router that determines the appropriate tool
-def route_by_intent(state: AgentState) -> str:
+def process_message(state: AgentState) -> AgentState:
+    message = state["messages"][-1].content
+    
+    if state["current_tool"] == "diagnose":
+        response = diagnose(message, state["context"].get("health_history"))
+    elif state["current_tool"] == "analyze":
+        response = analyze_health_data(message)
+    else:
+        response = ask_chatbot(message)
+        
+    state["messages"].append(AIMessage(content=response))
+    return state
+
+# Update the router to handle all cases
+def route_by_intent(state: AgentState) -> AgentState:
     message = state["messages"][-1].content.lower()
-    if "symptoms" in message:
-        return "diagnose"
-    elif any(term in message for term in ["data", "temperature", "pressure", "rate"]):
-        return "analyze"
-    return "chat"
+    
+    if any(word in message for word in ["symptom", "pain", "feel"]):
+        state["current_tool"] = "diagnose"
+    elif any(word in message for word in ["data", "stats", "measurements"]):
+        state["current_tool"] = "analyze"
+    else:
+        state["current_tool"] = "chat"
+        
+    return state
 
 def update_summary(state: AgentState) -> AgentState:
     state["summary"] = memory.predict_new_summary(
@@ -82,54 +100,39 @@ def update_summary(state: AgentState) -> AgentState:
     )
     return state
 
-# Build the graph
-workflow = StateGraph(AgentState)
+# Define a unified state manager
+def get_state_reducer():
+    return (
+        StateGraph(AgentState)
+        .add_node("router", route_by_intent)
+        .add_node("process", process_message)
+        .add_node("summarize", update_summary)
+        .add_edge("router", "process")
+        .add_edge("process", "summarize")
+        .add_edge("summarize", END)
+    )
 
-# Add nodes for the unified flow
-workflow.add_node("router", route_by_intent)
-workflow.add_node("diagnose", tool_executor)
-workflow.add_node("analyze", tool_executor) 
-workflow.add_node("chat", tool_executor)
-workflow.add_node("summarize", update_summary)
-
-# Add edges for the workflow
-workflow.add_edge("router", "diagnose")
-workflow.add_edge("router", "analyze")
-workflow.add_edge("router", "chat")
-workflow.add_edge("diagnose", "summarize")
-workflow.add_edge("analyze", "summarize") 
-workflow.add_edge("chat", "summarize")
-workflow.add_edge("summarize", END)
-
-# Compile
-chain = workflow.compile()
-
-# Streamlit UI
-st.title("Enhanced Medical Diagnosis System")
+# Simplified UI with one chat interface
+st.title("Medical Assistant")
 
 if "messages" not in st.session_state:
     st.session_state.messages = []
-    st.session_state.health_history = {}
+    st.session_state.context = {"health_history": {}}
 
-user_input = st.text_area("Enter your symptoms or question:")
+chat_container = st.container()
+user_input = st.text_input("Enter your message:", key="user_input")
 
-if st.button("Submit"):
+if st.button("Send", key="send_button", type="primary"):
     with st.spinner("Processing..."):
-        # Update state
+        workflow = get_state_reducer().compile()
+        
         current_state = {
             "messages": st.session_state.messages + [HumanMessage(content=user_input)],
-            "health_history": st.session_state.health_history,
-            "summary": memory.buffer,
+            "context": st.session_state.context,
+            "summary": "",
             "current_tool": None
         }
         
-        # Run chain
-        result = chain.invoke(current_state)
-        
-        # Update session state
+        result = workflow.invoke(current_state)
         st.session_state.messages = result["messages"]
-        st.session_state.health_history = result["health_history"]
-        
-        # Display response
-        st.write("Response:", result["messages"][-1].content)
-        st.write("Conversation Summary:", result["summary"])
+        st.session_state.context = result["context"]
