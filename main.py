@@ -1,108 +1,59 @@
-import os
-import re
 import streamlit as st
 import google.generativeai as genai
-from fastapi import FastAPI, Request
-from fastapi.middleware.wsgi import WSGIMiddleware
+import os
 from langchain import LangChain
 from langgraph import LangGraph
 
-# Set your API key
-genai.configure(api_key=st.secrets["api_keys"]["google_gemini"])
+# Configure the Gemini API
+genai.configure(api_key=os.environ["GOOGLE_API_KEY"])
 
-# Initialize the Gemini client
-model = genai.GenerativeModel("gemini-1.5-flash")
-
+# Function to diagnose symptoms using the Gemini API
 def diagnose(symptoms):
     prompt = f"Patient reports: {symptoms}. What could be wrong?"
-    response = model.generate_content(prompt)
-
-    # Extract potential diagnoses (this is a simple example, you'll need more robust NLP techniques)
-    diagnoses = re.findall(r"Possible diagnoses?:?\s*(.*?)\n", response.text)
-
-    return diagnoses, response.text
-
-def analyze_health_data(data):
-    prompt = f"Analyze the following health data: {data}. Provide personalized health recommendations."
+    model = genai.GenerativeModel("gemini-1.5-flash")
     response = model.generate_content(prompt)
     return response.text
 
-def chatbot(question):
-    prompt = f"User asks: {question}"
+# Function to analyze health data using the Gemini API
+def analyze_health_data(health_data):
+    prompt = f"Analyze the following health data: {health_data}"
+    model = genai.GenerativeModel("gemini-1.5-flash")
     response = model.generate_content(prompt)
     return response.text
 
-# Streamlit interface
+# Function to answer health-related questions using the Gemini API
+def ask_chatbot(question):
+    prompt = f"Question: {question}"
+    model = genai.GenerativeModel("gemini-1.5-flash")
+    response = model.generate_content(prompt)
+    return response.text
+
+# Streamlit app
 st.title("Medical Diagnosis Application")
-st.write("Input your symptoms to receive potential diagnoses and explanations from Gemini.")
 
-# User input for symptoms
+# Symptom Checker
+st.header("Symptom Checker")
 symptoms = st.text_area("Describe your symptoms:")
-
 if st.button("Diagnose"):
-    if symptoms:
-        diagnoses, full_response = diagnose(symptoms)
-        
-        # Display results
-        st.write("Disclaimer: This is for informational purposes only and not a substitute for professional medical advice.")
-        if diagnoses:
-            st.write("Potential diagnoses:")
-            for diagnosis in diagnoses:
-                st.write(f"- {diagnosis}")
-        else:
-            st.write("No specific diagnoses could be determined. Please consult a medical professional.")
-        st.write("\nFull response from Gemini:")
-        st.write(full_response)
-    else:
-        st.write("Please enter your symptoms.")
+    with st.spinner("Diagnosing..."):
+        diagnosis = diagnose(symptoms)
+    st.write("Diagnosis:")
+    st.write(diagnosis)
 
-# User input for health data
-st.write("Input your daily health data to receive personalized health recommendations.")
-health_data = st.text_area("Enter your health data (e.g., temperature, blood pressure, heart rate):")
-
+# Health Monitoring
+st.header("Health Monitoring")
+health_data = st.text_area("Enter your health data:")
 if st.button("Analyze Health Data"):
-    if health_data:
+    with st.spinner("Analyzing..."):
         analysis = analyze_health_data(health_data)
-        st.write("Health Data Analysis:")
-        st.write(analysis)
-    else:
-        st.write("Please enter your health data.")
+    st.write("Health Data Analysis:")
+    st.write(analysis)
 
-# User input for chatbot
-st.write("Ask any health-related questions to the chatbot.")
+# Medical Advice Chatbot
+st.header("Medical Advice Chatbot")
 question = st.text_area("Enter your question:")
-
 if st.button("Ask Chatbot"):
-    if question:
-        answer = chatbot(question)
-        st.write("Chatbot Response:")
-        st.write(answer)
-    else:
-        st.write("Please enter your question.")
-
-app = FastAPI()
-
-@app.post("/diagnose")
-async def diagnose_endpoint(request: Request):
-    data = await request.json()
-    symptoms = data.get("symptoms", "")
-    diagnoses, full_response = diagnose(symptoms)
-    return {"diagnoses": diagnoses, "full_response": full_response}
-
-@app.post("/analyze_health_data")
-async def analyze_health_data_endpoint(request: Request):
-    data = await request.json()
-    health_data = data.get("health_data", "")
-    analysis = analyze_health_data(health_data)
-    return {"analysis": analysis}
-
-@app.post("/ask_chatbot")
-async def ask_chatbot_endpoint(request: Request):
-    data = await request.json()
-    question = data.get("question", "")
-    answer = chatbot(question)
-    return {"answer": answer}
-
-# Mount the Streamlit app
-streamlit_app = st.app
-app.mount("/", WSGIMiddleware(streamlit_app))
+    with st.spinner("Asking..."):
+        answer = ask_chatbot(question)
+    st.write("Chatbot Response:")
+    st.write(answer)

@@ -19,4 +19,28 @@ describe('API Integration Tests', () => {
     expect(data).toHaveProperty('diagnoses');
     expect(data).toHaveProperty('full_response');
   });
+
+  test('analyze_health_data endpoint', async () => {
+    const response = await fetch('/analyze_health_data', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ healthData: '98.6, 120/80, 72' }),
+    });
+    const data = await response.json();
+    expect(data).toHaveProperty('analysis');
+  });
+
+  test('ask_chatbot endpoint', async () => {
+    const response = await fetch('/ask_chatbot', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ question: 'What is a healthy diet?' }),
+    });
+    const data = await response.json();
+    expect(data).toHaveProperty('answer');
+  });
 });
